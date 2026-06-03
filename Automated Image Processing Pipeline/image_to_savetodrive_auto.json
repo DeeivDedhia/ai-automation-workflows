@@ -1,0 +1,335 @@
+{
+  "name": "Smart Image Processing Automation",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f7eca559-e8ac-4654-b680-f4df2ff8a2f3",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "your-google-sheet-id",
+          "mode": "list",
+          "cachedResultName": "IMAGES URL"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "32a4a87a-5a06-46cd-ad5a-ed13b2a93e05",
+      "name": "Get row(s) in sheet"
+    },
+    {
+      "parameters": {
+        "operation": "resize",
+        "width": 1200,
+        "height": 1200,
+        "options": {
+          "fileName": "={{ ($binary.data.fileName || 'image').replace(/\\.[^/.]+$/, '') + '.jpg' }}",
+          "format": "jpeg"
+        }
+      },
+      "type": "n8n-nodes-base.editImage",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        0
+      ],
+      "id": "31f1d802-3266-40d9-806f-1b2b2201b94a",
+      "name": "Edit Image"
+    },
+    {
+      "parameters": {
+        "name": "={{\n  (\n    $binary.data.fileName\n    || $json.base_name\n    || decodeURIComponent((($json.image_url || '').split('?')[0].split('/').pop()) || '')\n    || 'image'\n  ).replace(/\\.[^/.]+$/, '').replace(/[\\/\\\\:*?\"<>|]+/g, '-') + '.jpg'\n}}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "your-folder-id",
+          "mode": "list",
+          "cachedResultName": "IMAGES"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1680,
+        0
+      ],
+      "id": "4eb1cefe-e821-474d-957f-b19103aa020e",
+      "name": "Upload file"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.URL }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "f3925fc5-b790-4efc-af13-6ce98d03b5ac",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "resize",
+        "width": 1200,
+        "height": 1200,
+        "options": {
+          "fileName": "={{ ($binary.data.fileName || 'image').replace(/\\.[^/.]+$/, '') + '.png' }}"
+        }
+      },
+      "type": "n8n-nodes-base.editImage",
+      "typeVersion": 1,
+      "position": [
+        1376,
+        208
+      ],
+      "id": "21bf1c66-a685-46ff-a599-69103229aa2c",
+      "name": "Edit Image1"
+    },
+    {
+      "parameters": {
+        "name": "={{   (     $binary.data.fileName     || $json.base_name     || decodeURIComponent((($json.image_url || '').split('?')[0].split('/').pop()) || '')     || 'image'   ).replace(/\\.[^/.]+$/, '').replace(/[\\/\\\\:*?\"<>|]+/g, '-') + '.PNG' }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "your-folder-id",
+          "mode": "list",
+          "cachedResultName": "IMAGESPNG"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1696,
+        208
+      ],
+      "id": "11342042-932c-4384-9141-22ed2450ca8e",
+      "name": "Upload file1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const PROP = 'data';          // binary property name (HTTP Request -> File)\nconst THRESHOLD = 1200;       // your dimension cutoff\n\nfunction readUInt24LE(b,o){return b[o]|(b[o+1]<<8)|(b[o+2]<<16);}\n\nfunction getImageSize(buf){\n  // PNG\n  if (buf.length>=24 && buf[0]===0x89 && buf[1]===0x50 && buf[2]===0x4E && buf[3]===0x47 &&\n      buf[4]===0x0D && buf[5]===0x0A && buf[6]===0x1A && buf[7]===0x0A)\n    return {type:'png', width:buf.readUInt32BE(16), height:buf.readUInt32BE(20)};\n  // JPEG\n  if (buf.length>4 && buf[0]===0xFF && buf[1]===0xD8){\n    let i=2; while(i+9<buf.length){\n      if (buf[i]!==0xFF){i++;continue;}\n      const m=buf[i+1], sof=(m>=0xC0&&m<=0xC3)||(m>=0xC5&&m<=0xC7)||(m>=0xC9&&m<=0xCB)||(m>=0xCD&&m<=0xCF);\n      const len=buf.readUInt16BE(i+2);\n      if (sof && i+2+len<=buf.length)\n        return {type:'jpeg', height:buf.readUInt16BE(i+5), width:buf.readUInt16BE(i+7)};\n      if (len<2) break; i+=2+len;\n    }\n  }\n  // GIF\n  if (buf.length>=10 && buf.toString('ascii',0,3)==='GIF')\n    return {type:'gif', width:buf.readUInt16LE(6), height:buf.readUInt16LE(8)};\n  // BMP\n  if (buf.length>=26 && buf[0]===0x42 && buf[1]===0x4D)\n    return {type:'bmp', width:buf.readInt32LE(18), height:Math.abs(buf.readInt32LE(22))};\n  // WebP (RIFF WEBP …)\n  if (buf.length>=30 && buf.toString('ascii',0,4)==='RIFF' && buf.toString('ascii',8,12)==='WEBP'){\n    const fourCC=buf.toString('ascii',12,16), off=20;\n    if (fourCC==='VP8 '){\n      const o=off+3;\n      if (buf.length>=o+7 && buf[o]===0x9D && buf[o+1]===0x01 && buf[o+2]===0x2A)\n        return {type:'webp', width:buf.readUInt16LE(o+3)&0x3FFF, height:buf.readUInt16LE(o+5)&0x3FFF};\n    } else if (fourCC==='VP8L'){\n      const o=off;\n      if (buf.length>=o+5 && buf[o]===0x2F){\n        const b1=buf[o+1],b2=buf[o+2],b3=buf[o+3],b4=buf[o+4];\n        return {type:'webp',\n          width:1+(b1|((b2&0x3F)<<8)),\n          height:1+(((b2&0xC0)>>6)|(b3<<2)|((b4&0x0F)<<10))};\n      }\n    } else if (fourCC==='VP8X'){\n      const o=off;\n      if (buf.length>=o+10)\n        return {type:'webp', width:readUInt24LE(buf,o+4)+1, height:readUInt24LE(buf,o+7)+1};\n    }\n  }\n  return {type:'unknown', width:null, height:null};\n}\n\nfor (let i=0; i<items.length; i++){\n  const binKeys = Object.keys(items[i].binary || {});\n  const prop = binKeys.includes(PROP) ? PROP : (binKeys[0] || null);\n  if (!prop) continue;\n\n  const buf = await this.helpers.getBinaryDataBuffer(i, prop); // <-- use i here\n  const meta = getImageSize(buf);\n\n  items[i].json.width   = meta.width;\n  items[i].json.height  = meta.height;\n  items[i].json.format  = meta.type;\n  items[i].json.isLarge = (meta.width >= THRESHOLD && meta.height >= THRESHOLD);\n}\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        0
+      ],
+      "id": "f52fad42-590a-4ddd-b0be-19f60031db58",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ef9c3b79-22a1-4bc7-b342-32d3433a2f2b",
+              "leftValue": "={{ $json.width }}",
+              "rightValue": 300,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            },
+            {
+              "id": "d4fa9047-bfcb-45f2-8c58-905687307495",
+              "leftValue": "={{ $json.height }}",
+              "rightValue": 300,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        928,
+        0
+      ],
+      "id": "674540cc-395d-477d-b134-070c07814112",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "your-folder-id",
+          "mode": "list",
+          "cachedResultName": "IMAGESLESSTHAN500"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1664,
+        -160
+      ],
+      "id": "3fb7466d-4813-4018-af7f-8d737f618423",
+      "name": "Upload file2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Image": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Image1": {
+      "main": [
+        [
+          {
+            "node": "Upload file1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file1": {
+      "main": [
+        []
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Upload file2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Image1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "workflow_id",
+  "tags": []
+}
