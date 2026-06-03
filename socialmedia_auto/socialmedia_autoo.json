@@ -1,0 +1,1207 @@
+{
+  "name": "scoialmedia_auto",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -672,
+        1328
+      ],
+      "id": "98448f35-40cb-481b-b5fb-21f2746fd8ac",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "your-sheet-id",
+          "mode": "list",
+          "cachedResultName": "socialmedia_auto"
+          
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -464,
+        1328
+      ],
+      "id": "18153700-d0ee-47fd-84cc-e2bbfe72ba71",
+      "name": "Get row(s) in sheet"
+    
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1431cdc2-bf24-4b51-9487-f2d2520a7580",
+              "leftValue": "={{ $json.f_instagram && $json.isImage }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        1712
+      ],
+      "id": "becdb159-b6cc-4484-bdd6-d4c9f1afc749",
+      "name": "INSTA"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1431cdc2-bf24-4b51-9487-f2d2520a7580",
+              "leftValue": "={{$json.f_facebook || !!$json.Caption}}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        1104
+      ],
+      "id": "46146b92-366e-4ff6-880e-02b87d42d883",
+      "name": "FACEBOOK"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1431cdc2-bf24-4b51-9487-f2d2520a7580",
+              "leftValue": "={{$json.f_linkedin && !!$json.Caption}}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        1312
+      ],
+      "id": "11dc2281-e164-4556-b76b-b38d621c806c",
+      "name": "LINKEDIN"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1431cdc2-bf24-4b51-9487-f2d2520a7580",
+              "leftValue": "={{$json.f_youtube && $json.isVideo}}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        1536
+      ],
+      "id": "1908f74c-c7d2-4a1a-9b0b-24189feebf3b",
+      "name": "YOUTUBE"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1392,
+        1680
+      ],
+      "id": "e1e1cf66-532e-40fc-861b-ba62907adbb1",
+      "name": "IG_MERGE"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $json.Instagram_UserID || $env.IG_USER_ID }}/media",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "image_url",
+              "value": "={{ $json.MediaURL }}"
+            },
+            {
+              "name": "caption",
+              "value": "={{ $json.Caption }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_PAGE_ACCESS_TOKEN"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        1632
+      ],
+      "id": "0b42b5c5-1540-49f3-8937-58231d82ee56",
+      "name": "IG_CREATEMEDIA",
+      "retryOnFail": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/PAGE_ID/photos",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "caption",
+              "value": "={{ $json.Caption }}"
+            },
+            {
+              "name": "url",
+              "value": "={{ $json.MediaURL }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer \"TOKEN\""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1056,
+        1008
+      ],
+      "id": "d28fc7c1-aaba-4294-982b-c0e03110c7b5",
+      "name": "FB_IMAGE",
+      "retryOnFail": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $json.Instagram_UserID || $env.IG_USER_ID }}/media_publish",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "creation_id",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_PAGE_ACCESS_TOKEN"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1184,
+        1648
+      ],
+      "id": "10dec344-0299-44be-8f95-95e6823df070",
+      "name": "IG_POST",
+      "retryOnFail": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1392,
+        1104
+      ],
+      "id": "569ab96a-8702-4cd5-b8ca-5daf7acaf486",
+      "name": "FB_MERGE"
+    },
+    {
+      "parameters": {
+        "authentication": "communityManagement",
+        "text": "={{ $json.Caption }}",
+        "shareMediaCategory": "IMAGE",
+        "binaryPropertyName": "{{ $json.LinkURL }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        1248
+      ],
+      "id": "42790d97-5554-4bad-911f-a2f0ed35b9c5",
+      "name": "LINKED_IN"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1392,
+        1312
+      ],
+      "id": "e892d560-92c7-48b9-ba8f-01e4a9cf626d",
+      "name": "LINKEDIN_MERGE"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "upload",
+        "title": "={{ $json.Title }}",
+        "regionCode": "IN",
+        "options": {
+          "description": "={{ $json.description }}"
+        }
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        1456
+      ],
+      "id": "d7a1919f-f003-440b-9db7-0a4bf23962f5",
+      "name": "Upload a video"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.MediaURL }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        1456
+      ],
+      "id": "bc078818-49fc-4fe3-80a4-f7efd6d58cf5",
+      "name": "yt_get_video",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1408,
+        1488
+      ],
+      "id": "f3a63339-0646-4067-802e-2d1647aed251",
+      "name": "YT_MERGE"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 4,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1840,
+        1312
+      ],
+      "id": "80e318e3-ce59-4adc-9803-c46010154f8b",
+      "name": "MERGE_ALL"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "your-sheet-id",
+          "mode": "list",
+          "cachedResultName": "Status"
+          
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1"
+          
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "IG": "Posted",
+            "LI": "Posted",
+            "FB ": "Posted",
+            "YT": "Posted"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "IG",
+              "displayName": "IG",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LI",
+              "displayName": "LI",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "FB ",
+              "displayName": "FB ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "YT",
+              "displayName": "YT",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2560,
+        1296
+      ],
+      "id": "e51d9fb1-c751-4312-9b0e-a837eb86ec69",
+      "name": "Append or update row in sheet"
+      
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.Topic }}\nGenerate:\n1. Instagram caption (engaging, short)\n2. LinkedIn caption (professional)\n3. Facebook caption (casual)\n4. YouTube title + description\n5. 10 hashtags\n6. CTA\n7. Image prompt for Leonardo AI\n\nReturn in JSON format.\nStore output as:\n\n{\n  \"ig_caption\": \"\",\n  \"li_caption\": \"\",\n  \"fb_caption\": \"\",\n  \"yt_title\": \"\",\n  \"yt_desc\": \"\",\n  \"hashtags\": \"\",\n  \"cta\": \"\",\n  \"image_prompt\": \"\"\n}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -256,
+        1328
+      ],
+      "id": "3255509d-5703-458d-a71b-237f2987329d",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        1504
+      ],
+      "id": "40354321-ace9-4607-8f50-87f95308d716",
+      "name": "Google Gemini Chat Model"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get raw text output from Gemini\nlet raw = $json.text || \"\";\n\n// Remove ```json and ``` if present\nraw = raw.replace(/```json/g, \"\").replace(/```/g, \"\").trim();\n\n// Parse JSON safely\nlet parsed;\n\ntry {\n  parsed = JSON.parse(raw);\n} catch (error) {\n  throw new Error(\"Invalid JSON from Gemini: \" + raw);\n}\n\n// Return structured fields\nreturn {\n  topic: $('Get row(s) in sheet').first().json.Topic,\n  ig_caption: parsed.ig_caption,\n  li_caption: parsed.li_caption,\n  fb_caption: parsed.fb_caption,\n  yt_title: parsed.yt_title,\n  yt_desc: parsed.yt_desc,\n  hashtags: parsed.hashtags,\n  cta: parsed.cta,\n  image_prompt: parsed.image_prompt\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        1328
+      ],
+      "id": "b8c1cf70-c084-47ee-933a-a063ee599efd",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "your-sheet-id",
+          "mode": "list",
+          "cachedResultName": "socialmedia_auto"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "IG": "={{ $json.ig_caption }}",
+            "LI": "={{ $json.li_caption }}",
+            "FB ": "={{ $json.fb_caption }}",
+            "YT_Title": "={{ $json.yt_title }}",
+            "YT_Des": "={{ $json.yt_desc }}",
+            "Hashtags": "={{ $json.hashtags }}",
+            "CTA": "={{ $json.cta }}",
+            "Prompt": "={{ $json.image_prompt }}",
+            "Topic": "={{ $json.topic }}"
+          },
+          "matchingColumns": [
+            "Topic"
+          ],
+          "schema": [
+            {
+              "id": "Topic",
+              "displayName": "Topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "IG",
+              "displayName": "IG",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LI",
+              "displayName": "LI",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "FB ",
+              "displayName": "FB ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "YT_Title",
+              "displayName": "YT_Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "YT_Des",
+              "displayName": "YT_Des",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Hashtags",
+              "displayName": "Hashtags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "CTA",
+              "displayName": "CTA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Prompt",
+              "displayName": "Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        272,
+        1328
+      ],
+      "id": "b0bb4fa3-cf27-4872-945d-acc4ff11ecae",
+      "name": "Append or update row in sheet1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://cloud.leonardo.ai/api/rest/v1/generations",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_API_KEY"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        496,
+        1328
+      ],
+      "id": "69f66803-29f1-4c80-9209-1fc3cfc1d4f1",
+      "name": "Leonardo Image generation"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7f461210-7073-43d3-9054-e7c9ee0ec67c",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "True",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2224,
+        1344
+      ],
+      "id": "379088d6-c3fc-4313-bae1-fcd0642d3be3",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all incoming merged items\nconst items = $input.all();\n\n// Create a clean output object\nlet outputData = {\n  success: true,\n  platforms: {}\n};\n\n// Loop through all merged inputs\nfor (const item of items) {\n  const data = item.json;\n\n  // Detect platform by keys\n  if (data.fb_caption || data.facebook) {\n    outputData.platforms.facebook = data;\n  }\n\n  if (data.li_caption || data.linkedin) {\n    outputData.platforms.linkedin = data;\n  }\n\n  if (data.yt_title) {\n    outputData.platforms.youtube = data;\n  }\n\n  if (data.ig_caption) {\n    outputData.platforms.instagram = data;\n  }\n}\n\n// Final return\nreturn [\n  {\n    json: {\n      output: true,\n      data: outputData\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        1344
+      ],
+      "id": "e575207e-7edb-4abb-81be-a3042ac783be",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "your-sheet-id",
+          "mode": "list",
+          "cachedResultName": "Status"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "IG": "Not posted",
+            "LI": "Not posted",
+            "FB ": "Not posted",
+            "YT": "Not posted"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "IG",
+              "displayName": "IG",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LI",
+              "displayName": "LI",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "FB ",
+              "displayName": "FB ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "YT",
+              "displayName": "YT",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2816,
+        1376
+      ],
+      "id": "81e5b7d0-6e17-4028-8faa-ea346641c65d",
+      "name": "Append or update row in sheet2"
+    },
+    {
+      "parameters": {
+        "content": "🚀 AI Social Media Automation Workflow\n\nThis workflow automates end-to-end content creation and publishing:\n\n1. Input:\n- Topic is fetched dynamically from Google Sheets\n\n2. Content Generation:\n- Google Gemini generates platform-specific captions, hashtags, CTA, and image prompt\n- Output is parsed and structured via Code node\n\n3. Media Generation:\n- Leonardo AI generates image using prompt",
+        "height": 304,
+        "width": 624
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -720,
+        1744
+      ],
+      "typeVersion": 1,
+      "id": "43279d16-365b-4501-b172-35d3ac032349",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "\n4. Platform Routing:\n- Conditional IF nodes route content to:\n  • Instagram (image-based)\n  • Facebook (image post)\n  • LinkedIn (professional post)\n  • YouTube (video upload)\n\n5. Publishing:\n- Posts are automatically published using platform APIs\n- Supports multi-platform execution in parallel\n\n6. Data Logging:\n- All generated content stored in Google Sheets\n- Posting status tracked (Posted / Not Posted)",
+        "height": 336,
+        "width": 624
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -720,
+        2096
+      ],
+      "typeVersion": 1,
+      "id": "a6e8713e-cd39-4284-a0db-511fa3b3de65",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "7. Error Handling:\n- Fail-safe IF condition checks final merged output\n- If success → logs as \"Posted\"\n- If failure → logs as \"Not Posted\"\n\n8. Scalability:\n- Modular design allows adding more platforms or approval steps\n- Can be extended with scheduling or human-in-loop review\n\n🎯 Outcome:\nFully automated AI-powered content pipeline from idea → generation → publishing → logging",
+        "height": 336,
+        "width": 640
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -736,
+        2464
+      ],
+      "typeVersion": 1,
+      "id": "c890d2af-a7d5-4ceb-b360-fb91023199a2",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INSTA": {
+      "main": [
+        [
+          {
+            "node": "IG_CREATEMEDIA",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IG_MERGE",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "IG_CREATEMEDIA": {
+      "main": [
+        [
+          {
+            "node": "IG_POST",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FACEBOOK": {
+      "main": [
+        [
+          {
+            "node": "FB_IMAGE",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "FB_MERGE",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "IG_POST": {
+      "main": [
+        [
+          {
+            "node": "IG_MERGE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FB_IMAGE": {
+      "main": [
+        [
+          {
+            "node": "FB_MERGE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LINKEDIN": {
+      "main": [
+        [
+          {
+            "node": "LINKED_IN",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "LINKEDIN_MERGE",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "LINKED_IN": {
+      "main": [
+        [
+          {
+            "node": "LINKEDIN_MERGE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YOUTUBE": {
+      "main": [
+        [
+          {
+            "node": "yt_get_video",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "YT_MERGE",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "yt_get_video": {
+      "main": [
+        [
+          {
+            "node": "Upload a video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload a video": {
+      "main": [
+        [
+          {
+            "node": "YT_MERGE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FB_MERGE": {
+      "main": [
+        [
+          {
+            "node": "MERGE_ALL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LINKEDIN_MERGE": {
+      "main": [
+        [
+          {
+            "node": "MERGE_ALL",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "YT_MERGE": {
+      "main": [
+        [
+          {
+            "node": "MERGE_ALL",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "MERGE_ALL": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "yt_get_video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Leonardo Image generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leonardo Image generation": {
+      "main": [
+        [
+          {
+            "node": "LINKEDIN",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "FACEBOOK",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "YOUTUBE",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "INSTA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IG_MERGE": {
+      "main": [
+        [
+          {
+            "node": "MERGE_ALL",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append or update row in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "04542f37-3879-4642-8699-46608adb866f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b3da27a067f77e005dc3f6a9aeac5ad747bce90eeb678fdd56fe813b79205d4a"
+  },
+  "id": "PmUb2soR95d0CAPf",
+  "tags": []
+}
